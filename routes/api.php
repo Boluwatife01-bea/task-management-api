@@ -1,0 +1,41 @@
+<?php
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\TaskController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and assigned to the "api"
+| middleware group. Enjoy building your API!
+|
+*/
+
+Route::prefix('auth')->group(function () {
+  Route::post('/register', [AuthController::class, 'register']);
+  Route::post('/login', [AuthController::class, 'login']);
+  Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail']);
+  Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink']);
+  Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+  Route::prefix('auth')->group(function () {
+    Route::get('/profile', [AuthController::class, 'Profile']);
+    Route::get('/logout', [AuthController::class, 'logout']);
+  });
+
+  Route::prefix('tasks')->group(function () {
+    Route::post('/create-task', [TaskController::class, 'store']);
+    Route::get('/myTask', [TaskController::class, 'index']);
+    Route::get('/show-task/{uuid}', [TaskController::class, 'show']);
+    Route::delete('/delete/{uuid}', [TaskController::class, 'destroy']);
+    Route::get('/stats', [TaskController::class, 'stats']);
+    Route::put('/update/{uuid}', [TaskController::class, 'update']);
+  });
+});
