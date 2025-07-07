@@ -65,7 +65,7 @@ class TaskController extends Controller
             ], 404);
         }
 
-        return new TaskResource($task);
+        return new TaskResource($task, 'Task is shown below');
     }
 
 
@@ -88,7 +88,7 @@ class TaskController extends Controller
             'due_date'
         ]));
 
-        return new TaskResource($task);
+        return new TaskResource($task, 'Task Updated successfully');
     }
 
     public function destroy($uuid, Request $request)
