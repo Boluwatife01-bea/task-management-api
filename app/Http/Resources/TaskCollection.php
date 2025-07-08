@@ -26,6 +26,7 @@ class TaskCollection extends ResourceCollection
                         'description' => $task->description,
                         'status' => $task->status,
                         'priority' => $task->priority,
+                        'team_id' => $task->team->uuid,
                         'due_date' => $task->due_date,
                         'user_id' => $task->assigned_to,
                     ];

@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\TeamController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -44,9 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('tasks')->group(function () {
     Route::post('/create-task', [TaskController::class, 'store']);
     Route::get('/myTask', [TaskController::class, 'index']);
-    Route::get('/show-task/{uuid}', [TaskController::class, 'show']);
-    Route::delete('/delete/{uuid}', [TaskController::class, 'destroy']);
-    Route::get('/stats', [TaskController::class, 'stats']);
-    Route::put('/update/{uuid}', [TaskController::class, 'update']);
+    Route::get('/show-task/{task:uuid}', [TaskController::class, 'show']);
+    Route::delete('/delete/{task:uuid}', [TaskController::class, 'destroy']);
+    Route::patch('/{task:uuid}/status', [TaskController::class, 'updateStatus']);
+    Route::put('/update/{task:uuid}', [TaskController::class, 'update']);
   });
 });

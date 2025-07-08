@@ -33,9 +33,36 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $teams
+            'data' => $teams->map(function ($team) {
+                return [
+                    'id' => $team->id,
+                    'uuid' => $team->uuid,
+                    'name' => $team->name,
+                    'slug' => $team->slug,
+                    'description' => $team->description,
+                    'team_lead_id' => $team->team_lead_id,
+                    'created_by' => $team->created_by,
+                    'is_active' => $team->is_active,
+                    'created_at' => $team->created_at,
+                    'updated_at' => $team->updated_at,
+                    'team_lead' => $team->teamLead,
+                    'members' => $team->members->map(function ($member) use ($team) {
+                        return [
+                            'id' => $member->id,
+                            'team_uuid' => $team->uuid,
+                            'user_id' => (int) $member->user_id,
+                            'user' => $member->user,
+                            'joined_at' => $member->joined_at,
+                            'created_at' => $member->created_at,
+                            'updated_at' => $member->updated_at,
+                        ];
+                    }),
+                    'tasks' => $team->tasks,
+                ];
+            })
         ]);
     }
+
 
     public function store(TeamStoreRequest $request)
     {
@@ -86,7 +113,27 @@ class TeamController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Team created successfully',
-                'data' => $team
+                'data' => [
+                    'uuid' => $team->uuid,
+                    'name' => $team->name,
+                    'description' => $team->description,
+                    'team_lead' => $team->teamLead,
+                    'created_by' => $team->creator,
+                    'slug' => $team->slug,
+                    'created_at' => $team->created_at,
+                    'updated_at' => $team->updated_at,
+                    'members' => $team->members->map(function ($member) {
+                        return [
+                            'id' => $member->id,
+                            'team_uuid' => $member->team->uuid,
+                            'user_id' => (int) $member->user_id,
+                            'user' => $member->user,
+                            'joined_at' => $member->joined_at,
+                            'created_at' => $member->created_at,
+                            'updated_at' => $member->updated_at,
+                        ];
+                    })
+                ]
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -111,10 +158,32 @@ class TeamController extends Controller
 
         $team->load(['teamLead', 'members', 'tasks.assignedUser', 'creator']);
 
+        
         return response()->json([
             'success' => true,
-            'data' => $team
-        ]);
+            'message' => 'Team created successfully',
+            'data' => [
+                'uuid' => $team->uuid,
+                'name' => $team->name,
+                'description' => $team->description,
+                'team_lead' => $team->teamLead,
+                'created_by' => $team->creator,
+                'slug' => $team->slug,
+                'created_at' => $team->created_at,
+                'updated_at' => $team->updated_at,
+                'members' => $team->members->map(function ($member) {
+                    return [
+                        'id' => $member->id,
+                        'team_uuid' => $member->team->uuid,
+                        'user_id' => (int) $member->user_id,
+                        'user' => $member->user,
+                        'joined_at' => $member->joined_at,
+                        'created_at' => $member->created_at,
+                        'updated_at' => $member->updated_at,
+                    ];
+                })
+            ]
+        ], 201);
     }
 
     public function update(TeamUpdateRequest $request, Team $team)
@@ -133,9 +202,29 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Team updated successfully',
-            'data' => $team
-        ]);
+            'message' => 'Team Updated successfully',
+            'data' => [
+                'uuid' => $team->uuid,
+                'name' => $team->name,
+                'description' => $team->description,
+                'team_lead' => $team->teamLead,
+                'created_by' => $team->creator,
+                'slug' => $team->slug,
+                'created_at' => $team->created_at,
+                'updated_at' => $team->updated_at,
+                'members' => $team->members->map(function ($member) {
+                    return [
+                        'id' => $member->id,
+                        'team_uuid' => $member->team->uuid,
+                        'user_id' => (int) $member->user_id,
+                        'user' => $member->user,
+                        'joined_at' => $member->joined_at,
+                        'created_at' => $member->created_at,
+                        'updated_at' => $member->updated_at,
+                    ];
+                })
+            ]
+        ], 201);
     }
 
     public function destroy(Request $request, Team $team)
@@ -213,7 +302,7 @@ class TeamController extends Controller
             ], 400);
         }
 
-        $team->members()->detach($user->id);
+        $team->members()->delete($user->id);
 
         return response()->json([
             'success' => true,

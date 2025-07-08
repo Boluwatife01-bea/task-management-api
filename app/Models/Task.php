@@ -8,7 +8,7 @@ use Ramsey\Uuid\Uuid;
 use Cviebrock\EloquentSluggable\Sluggable;
 
 class Task extends Model
-{   
+{
 
     use HasFactory, Sluggable;
 
@@ -17,18 +17,21 @@ class Task extends Model
      *
      * @var list<string>
      */
+    
     protected $fillable = [
         'uuid',
-        'slug',
         'title',
         'description',
+        'slug',
         'status',
         'priority',
+        'team_id',
+        'assigned_to',
         'due_date',
-        'user_id'
+        'created_by'
     ];
 
-       protected $casts = [
+    protected $casts = [
         'due_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -40,16 +43,16 @@ class Task extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = Uuid::uuid4()->toString();
             }
         });
     }
-     
 
-      public function sluggable(): array
+
+    public function sluggable(): array
     {
         return [
             'slug' => [
@@ -66,21 +69,37 @@ class Task extends Model
         return $this->belongsTo(User::class);
     }
 
-    
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function getRouteKeyName()
     {
         return 'uuid';
     }
 
-   public function scopeByStatus($query, $status){
-     return $query->where('status', $status);
-   }
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
 
-   public function scopeByPriority($query, $priority){
-     return $query->where('priority', $priority);
-   }
-  
-     public function scopeOverdue($query)
+    public function scopeByPriority($query, $priority)
+    {
+        return $query->where('priority', $priority);
+    }
+
+    public function scopeOverdue($query)
     {
         return $query->where('due_date', '<', now())->where('status', '!=', 'completed');
     }
