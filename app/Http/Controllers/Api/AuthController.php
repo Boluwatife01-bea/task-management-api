@@ -23,7 +23,8 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'role' => $request->role
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -32,7 +33,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'User Register Successfuly. Please check your email for verification',
+            'message' => 'User Register Successfully. Please check your email for verification',
             'data' => [
                 'user' => [
                     'uuid' => $user->uuid,
@@ -77,10 +78,10 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Login Succesfull',
+            'message' => 'Login Successfully',
             'data' => [
                 'user' => [
-                    'uuid' => $user->id,
+                    'uuid' => $user->uuid,
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,

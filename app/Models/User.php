@@ -12,7 +12,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Notifications\Notifiable;
 
-
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -28,9 +27,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'uuid',
-        'slug',
+        'role',
         'avatar',
-        'last_login_at'
+        'is_active',
+        'slug'
     ];
 
     /**
@@ -44,17 +44,15 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
-
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean'
     ];
-
-
 
     protected static function boot()
     {
@@ -63,27 +61,57 @@ class User extends Authenticatable implements MustVerifyEmail
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = Uuid::uuid4()->toString();
-            };
+            }
         });
     }
-
 
     public function sluggable(): array
     {
         return [
             'slug' => [
-                'source' => 'name',
-                'unique' => true,
-                'separator' => '-',
-                'max_length' => 100,
+                'source' => 'name'
             ]
         ];
     }
 
-
-    public function tasks()
+    public function teamsLead()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Team::class, 'team_lead_id');
+    }
+
+    public function teamsMember()
+    {
+        return $this->belongsToMany(Team::class, 'team_members');
+    }
+
+    public function createdTeams()
+    {
+        return $this->hasMany(Team::class, 'created_by');
+    }
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function createdTasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isTeamLead()
+    {
+        return $this->role === 'team_lead';
+    }
+
+    public function isUser()
+    {
+        return $this->role === 'user';
     }
 
     public function getRouteKeyName()
@@ -95,7 +123,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return static::where('uuid', $uuid)->first();
     }
-
 
     public function sendEmailVerificationNotification()
     {

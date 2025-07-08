@@ -35,7 +35,7 @@ class UserLoginRequest extends FormRequest
             'email.required' => 'Email is required',
             'email.email' => 'Enter the registered Email address',
             'password.required' => 'Password is required',
-            'remeber_me.boolean'=> 'Remeber Me must be true or false'
+            'remember_me.boolean'=> 'Remember Me must be true or false'
 
         ];
     }

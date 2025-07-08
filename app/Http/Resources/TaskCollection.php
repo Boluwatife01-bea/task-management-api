@@ -17,13 +17,20 @@ class TaskCollection extends ResourceCollection
         return [
             'success' => true,
             'data' => [
-                'tasks' => $this->items(),
-                'pagination' => [
-                    'current_page' => $this->currentPage(),
-                    'last_page' => $this->lastPage(),
-                    'per_page' => $this->perPage(),
-                    'total' => $this->total(),
-                ]
+                'tasks' => $this->collection->map(function ($task) {
+                    return [
+                        'id' => $task->id,
+                        'uuid' => $task->uuid,
+                        'slug' => $task->slug,
+                        'title' => $task->title,
+                        'description' => $task->description,
+                        'status' => $task->status,
+                        'priority' => $task->priority,
+                        'due_date' => $task->due_date,
+                        'user_id' => $task->assigned_to,
+                    ];
+                }),
+                
             ]
         ];
     }

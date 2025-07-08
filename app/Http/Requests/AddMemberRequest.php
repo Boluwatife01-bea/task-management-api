@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TaskStoreRequest extends FormRequest
+class AddMemberRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +22,7 @@ class TaskStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'in:pending,in_progress,completed, urgent',
-            'priority' => 'in:low,medium,high',
-            'team_id' => 'required|exists:teams,uuid',
-            'assigned_to' => 'required|exists:users,uuid',
-            'due_date' => 'nullable|date|after_or_equal:today'
+            'user_id' => 'required|exists:users,uuid'
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TeamController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,16 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('auth')->group(function () {
     Route::get('/profile', [AuthController::class, 'Profile']);
     Route::get('/logout', [AuthController::class, 'logout']);
+  });
+
+  Route::prefix('team')->group(function() {
+    Route::get('/allTeams', [TeamController::class, 'index']);
+    Route::post('/create-team', [TeamController::class, 'store']);
+    Route::get('/show-team/{team}', [TeamController::class, 'show']);
+    Route::put('/update-team/{team}', [TeamController::class, 'update']);
+    Route::delete('/delete-team/{team}', [TeamController::class, 'destroy']);
+    Route::post('/{team}/members', [TeamController::class, 'addMember']);
+    Route::delete('/{team}/members/{user}', [TeamController::class, 'removeMember']);
   });
 
   Route::prefix('tasks')->group(function () {

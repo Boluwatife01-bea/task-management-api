@@ -17,14 +17,14 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('title');
             $table->text('description');
-            $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
-            $table->date('due_date')->nullable();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled'])->default('pending');
+            $table->enum('priority', ['low', 'medium', 'high','urgent'])->default('medium');
+            $table->foreignId('team_id')->constrained()->onDelete('cascade');
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->datetime('due_date')->nullable();
+            $table->datetime('completed_at')->nullable();
             $table->timestamps();
-
-            $table->index(['user_id', 'status']);
-            $table->index('due_date');
         });
     }
 

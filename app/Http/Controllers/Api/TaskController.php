@@ -2,56 +2,67 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\TaskStoreRequest;
-use App\Http\Resources\TaskCollection;
-use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Models\Team;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\TaskResource;
+use App\Http\Resources\TaskCollection;
+use App\Http\Requests\TaskStoreRequest;
 
 class TaskController extends Controller
 {
     public function index(Request $request)
     {
-
-        $query = Task::where('user_id', $request->user()->id);
-        if ($request->has('status')) {
-            $query->byStatus($request->status);
-        }
-
-        if ($request->has('priority')) {
-            $query->byPriority($request->priority);
-        }
-
-        if ($request->has('overdue') && $request->boolean('overdue')) {
-            $query->overdue();
-        }
-
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $perPage = $request->get('per_page', 15);
-        $tasks = $query->paginate($perPage);
-
+            $user = $request->user();
+            $query = Task::with(['team', 'assignedUser', 'creator']);
+    
+            if ($user->isAdmin()) {
+                $tasks = $query->get();
+            } elseif ($user->isTeamLead()) {
+                
+                $teamIds = $user->teamsAsLead()->pluck('id');
+                $tasks = $query->whereIn('team_id', $teamIds)->get();
+            } else {
+                $teamIds = $user->teamsAsMember()->pluck('id');
+                $tasks = $query->where(function ($q) use ($user, $teamIds) {
+                    $q->where('assigned_to', $user->id)
+                      ->orWhereIn('team_id', $teamIds);
+                })->get();
+            }
+    
+    
         return new TaskCollection($tasks);
     }
 
 
     public function store(TaskStoreRequest $request)
-    {
+{
+    $user = $request->user();
 
-        $task = Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => $request->get('status', 'pending'),
-            'priority' => $request->get('priority', 'medium'),
-            'due_date' => $request->due_date,
-            'user_id' => $request->user()->id,
-        ]);
-
-        return new TaskResource($task);
+    $team = Team::where('uuid', $request->team_id)->first();
+    
+    if (!$user->isAdmin() && $team->team_lead_id !== $user->id) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You can only create tasks for teams you lead'
+        ], 403);
     }
+
+    $task = Task::create([
+        'title' => $request->title,
+        'description' => $request->description,
+        'status' => $request->get('status', 'pending'),
+        'priority' => $request->get('priority', 'medium'),
+        'team_id' => $request->team->id, 
+        'assigned_to' =>$request->assigned_to,
+        'due_date' => $request->due_date,
+        'created_by' => $user->id,
+    ]);
+
+    return new TaskResource($task);
+}
+
 
 
     public function show($uuid, Request $request)
@@ -132,4 +143,6 @@ class TaskController extends Controller
             ]
         ]);
     }
+
+    
 }
